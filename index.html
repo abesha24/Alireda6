@@ -1,0 +1,1226 @@
+import { useState, useEffect } from "react";
+
+const COLORS = {
+  gold: "#C9A84C",
+  goldLight: "#F0D080",
+  goldDark: "#8B6914",
+  navy: "#0A1628",
+  navyMid: "#132240",
+  navyLight: "#1E3A5F",
+  cream: "#FAF7F0",
+  white: "#FFFFFF",
+  green: "#2D7D46",
+  red: "#C0392B",
+  gray: "#6B7280",
+  lightGray: "#F3F4F6",
+};
+
+const GFonts = () => (
+  <style>{`
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Tajawal:wght@300;400;500;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Tajawal', sans-serif; background: ${COLORS.cream}; color: ${COLORS.navy}; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: ${COLORS.lightGray}; }
+    ::-webkit-scrollbar-thumb { background: ${COLORS.gold}; border-radius: 3px; }
+    
+    .btn-gold {
+      background: linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight});
+      color: ${COLORS.navy};
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.5px;
+    }
+    .btn-gold:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,168,76,0.4); }
+    .btn-outline {
+      background: transparent;
+      color: ${COLORS.gold};
+      border: 1.5px solid ${COLORS.gold};
+      padding: 9px 22px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-outline:hover { background: ${COLORS.gold}; color: ${COLORS.navy}; }
+    .btn-navy {
+      background: ${COLORS.navyLight};
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 6px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-navy:hover { background: ${COLORS.navy}; }
+    input, select, textarea {
+      font-family: 'Tajawal', sans-serif;
+      border: 1px solid #D1D5DB;
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 14px;
+      width: 100%;
+      outline: none;
+      transition: border 0.2s;
+      background: white;
+    }
+    input:focus, select:focus, textarea:focus { border-color: ${COLORS.gold}; box-shadow: 0 0 0 3px rgba(201,168,76,0.15); }
+    label { font-size: 13px; font-weight: 500; color: #374151; display: block; margin-bottom: 5px; }
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      overflow: hidden;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-available { background: #D1FAE5; color: #065F46; }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-hired { background: #DBEAFE; color: #1E40AF; }
+    .badge-vip { background: #EDE9FE; color: #5B21B6; }
+    .stat-card {
+      background: white;
+      border-radius: 10px;
+      padding: 18px 20px;
+      border: 1px solid #E5E7EB;
+    }
+  `}</style>
+);
+
+// ── SAMPLE DATA ────────────────────────────────────────────────────────────────
+const maids = [
+  { id: 1, name: "Maria Santos", nationality: "Philippines", age: 28, experience: 5, skills: ["Cleaning", "Cooking", "Childcare", "Elderly Care"], status: "available", photo: "MS", price: 180, rating: 4.9, languages: ["English", "Arabic"], religion: "Christian", contract: "2 Years", ref: "ARA-001" },
+  { id: 2, name: "Fatima Al-Hadad", nationality: "Ethiopia", age: 32, experience: 8, skills: ["Cooking", "Cleaning", "Laundry"], status: "available", photo: "FA", price: 150, rating: 4.7, languages: ["English", "Arabic", "Amharic"], religion: "Muslim", contract: "2 Years", ref: "ARA-002" },
+  { id: 3, name: "Priya Kumari", nationality: "India", age: 25, experience: 3, skills: ["Childcare", "Cooking", "Cleaning"], status: "pending", photo: "PK", price: 160, rating: 4.6, languages: ["English", "Hindi"], religion: "Hindu", contract: "2 Years", ref: "ARA-003" },
+  { id: 4, name: "Amara Diallo", nationality: "Kenya", age: 30, experience: 6, skills: ["Elderly Care", "Cleaning", "Cooking", "Driving"], status: "available", photo: "AD", price: 170, rating: 4.8, languages: ["English", "Swahili"], religion: "Christian", contract: "2 Years", ref: "ARA-004" },
+  { id: 5, name: "Nadia Yusuf", nationality: "Indonesia", age: 27, experience: 4, skills: ["Childcare", "Cleaning", "Cooking"], status: "hired", photo: "NY", price: 155, rating: 4.5, languages: ["English", "Bahasa"], religion: "Muslim", contract: "2 Years", ref: "ARA-005" },
+  { id: 6, name: "Grace Okonkwo", nationality: "Nigeria", age: 35, experience: 10, skills: ["Nursing Care", "Elderly Care", "Cooking", "Childcare"], status: "available", photo: "GO", price: 200, rating: 5.0, languages: ["English"], religion: "Christian", contract: "2 Years", ref: "ARA-006" },
+];
+
+const members = [
+  { id: 1, name: "Ahmed Al-Rashidi", civil: "289xxxxxx", phone: "+965 9900-1234", address: "Salmiya, Block 4", email: "ahmed@email.com", plan: "vip", status: "active", joined: "Jan 2024", maidRef: "ARA-001", maidName: "Maria Santos", payments: [{ date: "Apr 2025", amount: 180, status: "paid" }, { date: "Mar 2025", amount: 180, status: "paid" }] },
+  { id: 2, name: "Sara Al-Mutairi", civil: "291xxxxxx", phone: "+965 9911-5678", address: "Kuwait City, Block 2", email: "sara@email.com", plan: "standard", status: "active", joined: "Mar 2024", maidRef: "ARA-004", maidName: "Amara Diallo", payments: [{ date: "Apr 2025", amount: 170, status: "paid" }, { date: "Mar 2025", amount: 170, status: "overdue" }] },
+];
+
+const notifications = [
+  { id: 1, type: "contract", title: "Contract Expiry Alert", message: "Maria Santos (ARA-001) contract expires in 30 days. Renewal required.", time: "2 hours ago", read: false, icon: "📋" },
+  { id: 2, type: "payment", title: "Payment Received", message: "Ahmed Al-Rashidi paid KD 180 for April 2025.", time: "5 hours ago", read: false, icon: "💰" },
+  { id: 3, type: "newmaid", title: "New Maid Profile Added", message: "Grace Okonkwo (ARA-006) profile is now live.", time: "1 day ago", read: true, icon: "👤" },
+  { id: 4, type: "overdue", title: "Overdue Payment", message: "Sara Al-Mutairi has an overdue payment of KD 170 for March 2025.", time: "2 days ago", read: true, icon: "⚠️" },
+  { id: 5, type: "inquiry", title: "New Inquiry Received", message: "New booking inquiry from Khalid Al-Sabah for a full-time maid.", time: "3 days ago", read: true, icon: "📩" },
+];
+
+// ── COMPONENTS ─────────────────────────────────────────────────────────────────
+
+function Avatar({ initials, size = 44, bg = COLORS.gold, color = COLORS.navy }) {
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", background: bg, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: size * 0.3, color, flexShrink: 0, fontFamily: "Tajawal, sans-serif" }}>
+      {initials}
+    </div>
+  );
+}
+
+function Logo({ small }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ width: small ? 32 : 42, height: small ? 32 : 42, background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldLight})`, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 900, fontSize: small ? 16 : 20, color: COLORS.navy, fontFamily: "Playfair Display, serif" }}>A</div>
+      <div>
+        <div style={{ fontFamily: "Playfair Display, serif", fontWeight: 700, fontSize: small ? 14 : 18, color: COLORS.gold, lineHeight: 1.1 }}>Alireda</div>
+        {!small && <div style={{ fontSize: 10, color: "#9CA3AF", letterSpacing: 1.5, textTransform: "uppercase" }}>House Maid Agency • Kuwait</div>}
+      </div>
+    </div>
+  );
+}
+
+function NavBar({ page, setPage, unread, user }) {
+  const navItems = user
+    ? [{ id: "member", label: "My Dashboard" }, { id: "maids", label: "Browse Maids" }, { id: "notifications", label: `Notifications${unread > 0 ? ` (${unread})` : ""}` }]
+    : [{ id: "home", label: "Home" }, { id: "maids", label: "Browse Maids" }, { id: "about", label: "About" }, { id: "contact", label: "Contact" }];
+
+  return (
+    <nav style={{ background: COLORS.navy, borderBottom: `2px solid ${COLORS.gold}`, position: "sticky", top: 0, zIndex: 100 }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
+        <button onClick={() => setPage("home")} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+          <Logo />
+        </button>
+        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+          {navItems.map(n => (
+            <button key={n.id} onClick={() => setPage(n.id)}
+              style={{ background: page === n.id ? `rgba(201,168,76,0.15)` : "none", border: "none", color: page === n.id ? COLORS.gold : "#CBD5E1", padding: "8px 14px", borderRadius: 6, cursor: "pointer", fontSize: 14, fontWeight: 500, fontFamily: "Tajawal, sans-serif", borderBottom: page === n.id ? `2px solid ${COLORS.gold}` : "2px solid transparent", transition: "all 0.2s" }}>
+              {n.label}
+            </button>
+          ))}
+          {!user && (
+            <button className="btn-gold" onClick={() => setPage("login")} style={{ marginLeft: 8 }}>Sign In</button>
+          )}
+          {user && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginLeft: 8 }}>
+              <Avatar initials={user.initials} size={32} />
+              <span style={{ color: "#CBD5E1", fontSize: 13 }}>{user.name}</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+// ── HOME PAGE ──────────────────────────────────────────────────────────────────
+function HomePage({ setPage }) {
+  const services = [
+    { icon: "🏠", title: "Full-Time Maids", desc: "Live-in domestic helpers for all household needs." },
+    { icon: "👶", title: "Childcare Specialists", desc: "Trained nannies experienced with infants and toddlers." },
+    { icon: "👴", title: "Elderly Care", desc: "Compassionate carers for senior family members." },
+    { icon: "🍳", title: "Personal Chefs", desc: "Skilled cooks specializing in Arabic & international cuisine." },
+    { icon: "🧹", title: "Part-Time Cleaning", desc: "Flexible housekeeping on your schedule." },
+    { icon: "🚗", title: "Driver Maids", desc: "Maids with a valid driving license for family errands." },
+  ];
+
+  const nationalities = ["Philippines 🇵🇭", "Indonesia 🇮🇩", "India 🇮🇳", "Ethiopia 🇪🇹", "Kenya 🇰🇪", "Nigeria 🇳🇬", "Sri Lanka 🇱🇰"];
+
+  const steps = [
+    { n: "01", title: "Browse Profiles", desc: "Filter by nationality, skills, and budget." },
+    { n: "02", title: "Book Interview", desc: "Schedule a video or in-office interview." },
+    { n: "03", title: "Choose & Pay", desc: "Select your maid and pay securely online." },
+    { n: "04", title: "Visa & Travel", desc: "We handle all paperwork and visa processing." },
+  ];
+
+  return (
+    <div>
+      {/* Hero */}
+      <div style={{ background: `linear-gradient(160deg, ${COLORS.navy} 0%, ${COLORS.navyLight} 100%)`, padding: "80px 20px 60px", textAlign: "center", position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundImage: `radial-gradient(circle at 20% 50%, rgba(201,168,76,0.06) 0%, transparent 60%), radial-gradient(circle at 80% 20%, rgba(201,168,76,0.04) 0%, transparent 50%)` }} />
+        <div style={{ position: "relative", maxWidth: 700, margin: "0 auto" }}>
+          <div style={{ display: "inline-block", background: "rgba(201,168,76,0.15)", border: `1px solid rgba(201,168,76,0.3)`, borderRadius: 20, padding: "5px 16px", fontSize: 12, color: COLORS.goldLight, marginBottom: 20, letterSpacing: 1 }}>TRUSTED SINCE 2008 • KUWAIT</div>
+          <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 48, fontWeight: 700, color: "white", lineHeight: 1.2, marginBottom: 16 }}>Find Your Perfect<br /><span style={{ color: COLORS.gold }}>House Maid</span> in Kuwait</h1>
+          <p style={{ color: "#94A3B8", fontSize: 16, lineHeight: 1.7, marginBottom: 36, maxWidth: 560, margin: "0 auto 36px" }}>Alireda Agency connects Kuwaiti families with verified, experienced domestic helpers from trusted source countries — fully documented and insured.</p>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            <button className="btn-gold" onClick={() => setPage("maids")} style={{ padding: "13px 32px", fontSize: 15 }}>Browse Available Maids</button>
+            <button className="btn-outline" onClick={() => setPage("contact")} style={{ padding: "13px 32px", fontSize: 15 }}>Free Consultation</button>
+          </div>
+          <div style={{ marginTop: 40, display: "flex", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
+            {[["500+", "Placements"], ["15+", "Years Experience"], ["12", "Source Countries"], ["98%", "Client Satisfaction"]].map(([n, l]) => (
+              <div key={l} style={{ textAlign: "center" }}>
+                <div style={{ fontFamily: "Playfair Display, serif", fontSize: 28, color: COLORS.gold, fontWeight: 700 }}>{n}</div>
+                <div style={{ fontSize: 12, color: "#94A3B8", marginTop: 2 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Nationalities */}
+      <div style={{ background: COLORS.gold, padding: "14px 20px", overflow: "hidden" }}>
+        <div style={{ display: "flex", gap: 24, justifyContent: "center", flexWrap: "wrap" }}>
+          {nationalities.map(n => <span key={n} style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy, whiteSpace: "nowrap" }}>{n}</span>)}
+        </div>
+      </div>
+
+      {/* Services */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "64px 20px" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 32, color: COLORS.navy }}>Our Services</h2>
+          <p style={{ color: COLORS.gray, marginTop: 8 }}>Comprehensive domestic staffing solutions for Kuwait families</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+          {services.map(s => (
+            <div key={s.title} className="card" style={{ padding: "24px", borderLeft: `4px solid ${COLORS.gold}`, transition: "transform 0.2s", cursor: "default" }}
+              onMouseEnter={e => e.currentTarget.style.transform = "translateY(-3px)"}
+              onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}>
+              <div style={{ fontSize: 32, marginBottom: 12 }}>{s.icon}</div>
+              <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 18, color: COLORS.navy, marginBottom: 8 }}>{s.title}</h3>
+              <p style={{ color: COLORS.gray, fontSize: 14, lineHeight: 1.6 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* How It Works */}
+      <div style={{ background: COLORS.navyMid, padding: "64px 20px" }}>
+        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 48 }}>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 32, color: "white" }}>How It Works</h2>
+            <p style={{ color: "#94A3B8", marginTop: 8 }}>Simple 4-step process from search to placement</p>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 24 }}>
+            {steps.map((s, i) => (
+              <div key={s.n} style={{ textAlign: "center", padding: "24px 16px" }}>
+                <div style={{ width: 56, height: 56, borderRadius: "50%", background: `rgba(201,168,76,0.15)`, border: `2px solid ${COLORS.gold}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontFamily: "Playfair Display, serif", fontSize: 18, fontWeight: 700, color: COLORS.gold }}>{s.n}</div>
+                {i < steps.length - 1 && <div style={{ display: "none" }} />}
+                <h3 style={{ color: "white", fontSize: 16, fontWeight: 600, marginBottom: 8 }}>{s.title}</h3>
+                <p style={{ color: "#94A3B8", fontSize: 13, lineHeight: 1.6 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Payment */}
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "64px 20px" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 32, color: COLORS.navy }}>Payment Options</h2>
+          <p style={{ color: COLORS.gray, marginTop: 8 }}>Flexible and secure payment methods accepted</p>
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+          {[
+            { icon: "💳", title: "KNET", desc: "Direct bank debit via Kuwait's national network" },
+            { icon: "🏦", title: "Bank Transfer", desc: "Direct transfer to Alireda's official bank account" },
+            { icon: "📱", title: "MyFatoorah", desc: "Online payment gateway supporting all Kuwaiti banks" },
+            { icon: "💵", title: "Cash", desc: "Pay at our office in Salmiya, Kuwait City" },
+          ].map(p => (
+            <div key={p.title} className="card" style={{ padding: 20, textAlign: "center" }}>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>{p.icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: COLORS.navy, marginBottom: 6 }}>{p.title}</div>
+              <div style={{ color: COLORS.gray, fontSize: 12, lineHeight: 1.5 }}>{p.desc}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, borderRadius: 12, padding: "28px 32px", marginTop: 32, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <div style={{ color: COLORS.gold, fontWeight: 700, fontSize: 18, marginBottom: 4 }}>Installment Plans Available</div>
+            <div style={{ color: "#CBD5E1", fontSize: 14 }}>Split your payment across 3–6 months with 0% interest via partner banks.</div>
+          </div>
+          <button className="btn-gold" onClick={() => setPage("contact")}>Ask About Plans</button>
+        </div>
+      </div>
+
+      {/* Testimonials */}
+      <div style={{ background: COLORS.lightGray, padding: "64px 20px" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 32, color: COLORS.navy, textAlign: "center", marginBottom: 36 }}>Client Testimonials</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+            {[
+              { name: "Maha Al-Sabah", area: "Rumaithiya", text: "Alireda found us the perfect maid — professional, honest, and wonderful with our children. Highly recommended!", stars: 5 },
+              { name: "Yusuf Al-Anzi", area: "Hawalli", text: "The process was smooth from start to finish. Our maid arrived on time, properly documented. Excellent service.", stars: 5 },
+              { name: "Nour Al-Dosari", area: "Salmiya", text: "We've used Alireda three times. They always match us with the right person. Outstanding agency in Kuwait.", stars: 5 },
+            ].map(t => (
+              <div key={t.name} className="card" style={{ padding: 24 }}>
+                <div style={{ color: COLORS.gold, fontSize: 20, marginBottom: 12 }}>{"★".repeat(t.stars)}</div>
+                <p style={{ color: "#374151", fontSize: 14, lineHeight: 1.7, marginBottom: 16, fontStyle: "italic" }}>"{t.text}"</p>
+                <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.navy }}>{t.name}</div>
+                <div style={{ fontSize: 12, color: COLORS.gray }}>{t.area}, Kuwait</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div style={{ background: `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldDark})`, padding: "48px 20px", textAlign: "center" }}>
+        <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 28, color: COLORS.navy, marginBottom: 8 }}>Ready to Find Your Ideal Maid?</h2>
+        <p style={{ color: COLORS.navyMid, fontSize: 15, marginBottom: 24 }}>Create an account today and access our full database of verified domestic helpers.</p>
+        <button className="btn-navy" onClick={() => setPage("login")} style={{ padding: "13px 36px", fontSize: 15 }}>Register Now — It's Free</button>
+      </div>
+
+      {/* Footer */}
+      <footer style={{ background: COLORS.navy, padding: "36px 20px", color: "#94A3B8", fontSize: 13 }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 24 }}>
+          <div>
+            <Logo />
+            <p style={{ marginTop: 12, maxWidth: 260, lineHeight: 1.6 }}>Kuwait's trusted domestic staffing agency since 2008. Licensed by the Ministry of Interior.</p>
+          </div>
+          <div>
+            <div style={{ color: COLORS.gold, fontWeight: 600, marginBottom: 10 }}>Contact Us</div>
+            <div>📍 Salmiya, Block 4, Street 12, Kuwait</div>
+            <div style={{ marginTop: 4 }}>📞 +965 2200-0000</div>
+            <div style={{ marginTop: 4 }}>✉️ info@alireda.com.kw</div>
+            <div style={{ marginTop: 4 }}>🕐 Sun–Thu: 9AM – 6PM</div>
+          </div>
+          <div>
+            <div style={{ color: COLORS.gold, fontWeight: 600, marginBottom: 10 }}>License & Accreditation</div>
+            <div>Ministry of Interior Lic. No. KW-2008-DHA-441</div>
+            <div style={{ marginTop: 4 }}>Kuwait Chamber of Commerce Member</div>
+            <div style={{ marginTop: 4 }}>ISO 9001:2015 Certified</div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 1100, margin: "20px auto 0", borderTop: "1px solid #1E3A5F", paddingTop: 16, textAlign: "center" }}>
+          © 2025 Alireda House Maid Agency. All rights reserved. | حقوق محفوظة لوكالة الرضا للعمالة المنزلية
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ── MAIDS PAGE ─────────────────────────────────────────────────────────────────
+function MaidsPage({ setPage, setSelectedMaid }) {
+  const [filter, setFilter] = useState({ nationality: "", skill: "", status: "" });
+  const [search, setSearch] = useState("");
+  const [detail, setDetail] = useState(null);
+
+  const filtered = maids.filter(m => {
+    if (filter.nationality && m.nationality !== filter.nationality) return false;
+    if (filter.skill && !m.skills.includes(filter.skill)) return false;
+    if (filter.status && m.status !== filter.status) return false;
+    if (search && !m.name.toLowerCase().includes(search.toLowerCase()) && !m.nationality.toLowerCase().includes(search.toLowerCase())) return false;
+    return true;
+  });
+
+  const allSkills = [...new Set(maids.flatMap(m => m.skills))];
+  const allNats = [...new Set(maids.map(m => m.nationality))];
+
+  if (detail) {
+    return (
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px" }}>
+        <button onClick={() => setDetail(null)} style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.gold, fontSize: 14, fontWeight: 600, marginBottom: 20, display: "flex", alignItems: "center", gap: 6 }}>← Back to Browse</button>
+        <div className="card" style={{ overflow: "visible" }}>
+          <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, padding: "32px", display: "flex", gap: 24, flexWrap: "wrap", alignItems: "center" }}>
+            <Avatar initials={detail.photo} size={80} bg={COLORS.gold} color={COLORS.navy} />
+            <div>
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 26, color: "white" }}>{detail.name}</h2>
+              <div style={{ color: "#94A3B8", fontSize: 14, marginTop: 4 }}>{detail.nationality} • Ref: {detail.ref}</div>
+              <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <span className="tag badge-available" style={{ background: detail.status === "available" ? "#D1FAE5" : detail.status === "pending" ? "#FEF3C7" : "#DBEAFE", color: detail.status === "available" ? "#065F46" : detail.status === "pending" ? "#92400E" : "#1E40AF" }}>
+                  {detail.status.charAt(0).toUpperCase() + detail.status.slice(1)}
+                </span>
+                <span className="tag" style={{ background: "rgba(201,168,76,0.2)", color: COLORS.gold }}>⭐ {detail.rating}</span>
+              </div>
+            </div>
+            <div style={{ marginLeft: "auto", textAlign: "right" }}>
+              <div style={{ color: "#94A3B8", fontSize: 12 }}>Monthly Salary</div>
+              <div style={{ fontFamily: "Playfair Display, serif", fontSize: 32, color: COLORS.gold, fontWeight: 700 }}>KD {detail.price}</div>
+              <div style={{ color: "#94A3B8", fontSize: 12 }}>+ agency fee</div>
+            </div>
+          </div>
+          <div style={{ padding: 32 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 20, marginBottom: 28 }}>
+              {[["Age", detail.age + " years"], ["Experience", detail.experience + " years"], ["Contract", detail.contract], ["Religion", detail.religion]].map(([k, v]) => (
+                <div key={k} style={{ background: COLORS.lightGray, borderRadius: 8, padding: "14px 16px" }}>
+                  <div style={{ color: COLORS.gray, fontSize: 12, marginBottom: 4 }}>{k}</div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: COLORS.navy }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 10 }}>Skills & Expertise</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {detail.skills.map(s => <span key={s} style={{ background: `rgba(10,22,40,0.06)`, border: `1px solid ${COLORS.gold}`, color: COLORS.navyLight, padding: "4px 12px", borderRadius: 20, fontSize: 13 }}>{s}</span>)}
+              </div>
+            </div>
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 10 }}>Languages</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {detail.languages.map(l => <span key={l} style={{ background: "#EDE9FE", color: "#5B21B6", padding: "4px 12px", borderRadius: 20, fontSize: 13 }}>{l}</span>)}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+              <button className="btn-gold" style={{ padding: "12px 28px" }} onClick={() => { setSelectedMaid(detail); setPage("booking"); }}>Book This Maid</button>
+              <button className="btn-outline" style={{ padding: "12px 28px" }}>Schedule Interview</button>
+              <button className="btn-navy" style={{ padding: "12px 28px" }} onClick={() => setPage("contact")}>Contact Us</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px" }}>
+      <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 28, color: COLORS.navy, marginBottom: 6 }}>Available Domestic Helpers</h1>
+      <p style={{ color: COLORS.gray, marginBottom: 24, fontSize: 14 }}>Showing {filtered.length} verified profiles</p>
+
+      {/* Filters */}
+      <div className="card" style={{ padding: "16px 20px", marginBottom: 24, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "flex-end" }}>
+        <div style={{ flex: "1 1 180px" }}>
+          <label>Search</label>
+          <input placeholder="Name or nationality..." value={search} onChange={e => setSearch(e.target.value)} />
+        </div>
+        <div style={{ flex: "1 1 160px" }}>
+          <label>Nationality</label>
+          <select value={filter.nationality} onChange={e => setFilter({ ...filter, nationality: e.target.value })}>
+            <option value="">All</option>
+            {allNats.map(n => <option key={n}>{n}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: "1 1 160px" }}>
+          <label>Skill</label>
+          <select value={filter.skill} onChange={e => setFilter({ ...filter, skill: e.target.value })}>
+            <option value="">All Skills</option>
+            {allSkills.map(s => <option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div style={{ flex: "1 1 140px" }}>
+          <label>Status</label>
+          <select value={filter.status} onChange={e => setFilter({ ...filter, status: e.target.value })}>
+            <option value="">All Status</option>
+            <option value="available">Available</option>
+            <option value="pending">Pending</option>
+            <option value="hired">Hired</option>
+          </select>
+        </div>
+        <button className="btn-gold" onClick={() => { setFilter({ nationality: "", skill: "", status: "" }); setSearch(""); }}>Clear</button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 20 }}>
+        {filtered.map(m => (
+          <div key={m.id} className="card" style={{ transition: "transform 0.2s, box-shadow 0.2s", cursor: "pointer" }}
+            onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.boxShadow = "0 12px 32px rgba(0,0,0,0.1)"; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = ""; }}
+            onClick={() => setDetail(m)}>
+            <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, padding: "20px", display: "flex", gap: 16, alignItems: "center" }}>
+              <Avatar initials={m.photo} size={52} bg={COLORS.gold} color={COLORS.navy} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, color: "white", fontSize: 15 }}>{m.name}</div>
+                <div style={{ color: "#94A3B8", fontSize: 12, marginTop: 2 }}>{m.nationality}</div>
+              </div>
+              <span className="tag" style={{ background: m.status === "available" ? "#D1FAE5" : m.status === "pending" ? "#FEF3C7" : "#DBEAFE", color: m.status === "available" ? "#065F46" : m.status === "pending" ? "#92400E" : "#1E40AF", fontSize: 11 }}>
+                {m.status}
+              </span>
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12, fontSize: 13 }}>
+                <span style={{ color: COLORS.gray }}>Experience: <strong style={{ color: COLORS.navy }}>{m.experience}yr</strong></span>
+                <span style={{ color: COLORS.gold, fontWeight: 700 }}>⭐ {m.rating}</span>
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 14 }}>
+                {m.skills.slice(0, 3).map(s => <span key={s} style={{ background: COLORS.lightGray, color: COLORS.gray, fontSize: 11, padding: "2px 8px", borderRadius: 10 }}>{s}</span>)}
+                {m.skills.length > 3 && <span style={{ color: COLORS.gray, fontSize: 11 }}>+{m.skills.length - 3}</span>}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontFamily: "Playfair Display, serif", fontSize: 20, fontWeight: 700, color: COLORS.navy }}>KD {m.price}<span style={{ fontSize: 12, fontWeight: 400, fontFamily: "Tajawal, sans-serif", color: COLORS.gray }}>/mo</span></span>
+                <span style={{ color: COLORS.gold, fontSize: 13, fontWeight: 600 }}>View Profile →</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── BOOKING PAGE ───────────────────────────────────────────────────────────────
+function BookingPage({ selectedMaid, setPage }) {
+  const [step, setStep] = useState(1);
+  const [form, setForm] = useState({ name: "", civil: "", phone: "", address: "", startDate: "", payMethod: "KNET", notes: "" });
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+  };
+
+  if (submitted) {
+    return (
+      <div style={{ maxWidth: 600, margin: "60px auto", padding: "0 20px", textAlign: "center" }}>
+        <div style={{ background: "white", borderRadius: 16, padding: 48, border: "1px solid #E5E7EB" }}>
+          <div style={{ width: 72, height: 72, background: "#D1FAE5", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 32 }}>✅</div>
+          <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 24, color: COLORS.navy, marginBottom: 12 }}>Booking Request Sent!</h2>
+          <p style={{ color: COLORS.gray, lineHeight: 1.7, marginBottom: 24 }}>Your booking for <strong>{selectedMaid?.name || "the selected maid"}</strong> has been submitted. Our team will contact you within 24 hours to confirm and proceed with payment.</p>
+          <div style={{ background: COLORS.lightGray, borderRadius: 8, padding: "14px 20px", marginBottom: 24, fontSize: 14, color: COLORS.navy }}>
+            Booking Ref: <strong>BK-2025-{Math.floor(Math.random() * 9000 + 1000)}</strong>
+          </div>
+          <button className="btn-gold" onClick={() => { setPage("home"); setSubmitted(false); }}>Return to Home</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px" }}>
+      <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 26, color: COLORS.navy, marginBottom: 6 }}>Book a Maid</h1>
+      {selectedMaid && (
+        <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, borderRadius: 10, padding: "14px 20px", marginBottom: 24, display: "flex", alignItems: "center", gap: 14 }}>
+          <Avatar initials={selectedMaid.photo} size={40} bg={COLORS.gold} color={COLORS.navy} />
+          <div>
+            <div style={{ color: "white", fontWeight: 600 }}>{selectedMaid.name}</div>
+            <div style={{ color: "#94A3B8", fontSize: 13 }}>{selectedMaid.nationality} • KD {selectedMaid.price}/mo • Ref: {selectedMaid.ref}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Steps */}
+      <div style={{ display: "flex", gap: 0, marginBottom: 32 }}>
+        {["Your Details", "Payment", "Confirm"].map((s, i) => (
+          <div key={s} style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ height: 4, background: i + 1 <= step ? COLORS.gold : "#E5E7EB", marginBottom: 8, borderRadius: i === 0 ? "4px 0 0 4px" : i === 2 ? "0 4px 4px 0" : 0 }} />
+            <div style={{ fontSize: 12, color: i + 1 <= step ? COLORS.gold : COLORS.gray, fontWeight: i + 1 === step ? 700 : 400 }}>{i + 1}. {s}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="card" style={{ padding: "28px 32px" }}>
+        {step === 1 && (
+          <div>
+            <h3 style={{ fontFamily: "Playfair Display, serif", marginBottom: 20, color: COLORS.navy }}>Your Details</h3>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div><label>Full Name (as per Civil ID) *</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="e.g. Ahmed Khalid Al-Sabah" /></div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div><label>Civil ID Number *</label><input value={form.civil} onChange={e => setForm({ ...form, civil: e.target.value })} placeholder="e.g. 289xxxxxxx" /></div>
+                <div><label>Mobile Number *</label><input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+965 XXXX-XXXX" /></div>
+              </div>
+              <div><label>Home Address *</label><input value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Area, Block, Street, House No." /></div>
+              <div><label>Preferred Start Date</label><input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} /></div>
+              <div><label>Special Requirements</label><textarea rows={3} value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="Any specific cooking preferences, childcare needs, etc." style={{ resize: "vertical" }} /></div>
+            </div>
+            <button className="btn-gold" style={{ marginTop: 20, padding: "12px 32px" }} onClick={() => setStep(2)}>Continue to Payment</button>
+          </div>
+        )}
+        {step === 2 && (
+          <div>
+            <h3 style={{ fontFamily: "Playfair Display, serif", marginBottom: 20, color: COLORS.navy }}>Payment Method</h3>
+            <div style={{ display: "grid", gap: 12, marginBottom: 24 }}>
+              {[{ id: "KNET", icon: "💳", label: "KNET", desc: "Direct Kuwaiti bank debit" }, { id: "bank", icon: "🏦", label: "Bank Transfer", desc: "Transfer to Alireda's account" }, { id: "myfatoorah", icon: "📱", label: "MyFatoorah", desc: "Online payment gateway" }, { id: "cash", icon: "💵", label: "Cash at Office", desc: "Pay at our Salmiya office" }].map(pm => (
+                <label key={pm.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 18px", border: `2px solid ${form.payMethod === pm.id ? COLORS.gold : "#E5E7EB"}`, borderRadius: 8, cursor: "pointer", background: form.payMethod === pm.id ? "rgba(201,168,76,0.05)" : "white", transition: "all 0.2s" }}>
+                  <input type="radio" name="pay" value={pm.id} checked={form.payMethod === pm.id} onChange={e => setForm({ ...form, payMethod: e.target.value })} style={{ width: 18, height: 18, accentColor: COLORS.gold }} />
+                  <span style={{ fontSize: 22 }}>{pm.icon}</span>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>{pm.label}</div>
+                    <div style={{ fontSize: 12, color: COLORS.gray }}>{pm.desc}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+            {selectedMaid && (
+              <div style={{ background: COLORS.lightGray, borderRadius: 8, padding: 16, marginBottom: 20 }}>
+                <div style={{ fontWeight: 600, marginBottom: 10, color: COLORS.navy }}>Payment Summary</div>
+                {[["Maid Monthly Salary", `KD ${selectedMaid.price}`], ["Agency Placement Fee", "KD 250"], ["Visa & Documentation", "KD 150"], ["Total Due Now", `KD ${selectedMaid.price + 400}`]].map(([k, v], i) => (
+                  <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderTop: i === 3 ? `1px solid #D1D5DB` : "none", fontWeight: i === 3 ? 700 : 400, fontSize: i === 3 ? 15 : 13, color: i === 3 ? COLORS.navy : COLORS.gray, marginTop: i === 3 ? 6 : 0, paddingTop: i === 3 ? 10 : 5 }}>
+                    <span>{k}</span><span style={{ color: i === 3 ? COLORS.gold : undefined }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="btn-outline" onClick={() => setStep(1)}>Back</button>
+              <button className="btn-gold" style={{ padding: "12px 32px" }} onClick={() => setStep(3)}>Review Booking</button>
+            </div>
+          </div>
+        )}
+        {step === 3 && (
+          <div>
+            <h3 style={{ fontFamily: "Playfair Display, serif", marginBottom: 20, color: COLORS.navy }}>Confirm Booking</h3>
+            <div style={{ background: COLORS.lightGray, borderRadius: 8, padding: 20, marginBottom: 20 }}>
+              {[["Maid", selectedMaid?.name], ["Reference", selectedMaid?.ref], ["Payment", form.payMethod], ["Start Date", form.startDate || "To be confirmed"], ["Contact", form.phone]].map(([k, v]) => (
+                <div key={k} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid #E5E7EB", fontSize: 14 }}>
+                  <span style={{ color: COLORS.gray }}>{k}</span>
+                  <span style={{ fontWeight: 600, color: COLORS.navy }}>{v}</span>
+                </div>
+              ))}
+            </div>
+            <p style={{ fontSize: 12, color: COLORS.gray, lineHeight: 1.6, marginBottom: 20 }}>By submitting, you agree to Alireda's Terms & Conditions and Privacy Policy. A representative will contact you within 24 hours to process your payment and finalize placement.</p>
+            <div style={{ display: "flex", gap: 12 }}>
+              <button className="btn-outline" onClick={() => setStep(2)}>Back</button>
+              <button className="btn-gold" style={{ padding: "12px 32px" }} onClick={handleSubmit}>Submit Booking ✓</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── MEMBER PAGE ────────────────────────────────────────────────────────────────
+function MemberPage({ setPage }) {
+  const member = members[0];
+  const [activeTab, setActiveTab] = useState("overview");
+
+  const tabs = ["overview", "maid", "payments", "documents", "settings"];
+
+  return (
+    <div style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 20px" }}>
+      {/* Header */}
+      <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, borderRadius: 12, padding: "24px 28px", marginBottom: 24, display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+          <Avatar initials="AR" size={56} bg={COLORS.gold} color={COLORS.navy} />
+          <div>
+            <div style={{ color: "white", fontWeight: 700, fontSize: 18 }}>{member.name}</div>
+            <div style={{ color: "#94A3B8", fontSize: 13 }}>{member.address} • Member since {member.joined}</div>
+            <span className="tag badge-vip" style={{ marginTop: 6, display: "inline-block" }}>⭐ VIP Member</span>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ color: "#94A3B8", fontSize: 12 }}>Account Status</div>
+          <div style={{ color: "#10B981", fontWeight: 700, fontSize: 15 }}>✓ Active</div>
+        </div>
+      </div>
+
+      {/* Stats */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
+        {[["Current Maid", "Maria Santos"], ["Contract", "12 months left"], ["Monthly Cost", "KD 180"], ["Next Payment", "Jun 1, 2025"]].map(([l, v]) => (
+          <div key={l} className="stat-card">
+            <div style={{ fontSize: 12, color: COLORS.gray, marginBottom: 5 }}>{l}</div>
+            <div style={{ fontWeight: 700, fontSize: 15, color: COLORS.navy }}>{v}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 4, borderBottom: `2px solid #E5E7EB`, marginBottom: 24, flexWrap: "wrap" }}>
+        {tabs.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            style={{ background: "none", border: "none", borderBottom: `2px solid ${activeTab === t ? COLORS.gold : "transparent"}`, marginBottom: -2, padding: "10px 16px", cursor: "pointer", fontFamily: "Tajawal, sans-serif", fontWeight: activeTab === t ? 700 : 400, color: activeTab === t ? COLORS.gold : COLORS.gray, fontSize: 14, textTransform: "capitalize", transition: "all 0.2s" }}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === "overview" && (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div className="card" style={{ padding: 20 }}>
+            <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 16, marginBottom: 16, color: COLORS.navy }}>Recent Notifications</h3>
+            {notifications.slice(0, 3).map(n => (
+              <div key={n.id} style={{ display: "flex", gap: 10, padding: "10px 0", borderBottom: "1px solid #F3F4F6" }}>
+                <span style={{ fontSize: 18 }}>{n.icon}</span>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy }}>{n.title}</div>
+                  <div style={{ fontSize: 12, color: COLORS.gray, marginTop: 2 }}>{n.time}</div>
+                </div>
+                {!n.read && <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS.gold, marginLeft: "auto", marginTop: 4, flexShrink: 0 }} />}
+              </div>
+            ))}
+          </div>
+          <div className="card" style={{ padding: 20 }}>
+            <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 16, marginBottom: 16, color: COLORS.navy }}>Quick Actions</h3>
+            {[["📋", "Renew Contract", "3 months remaining"], ["💳", "Make Payment", "Next due Jun 1"], ["📞", "Contact Agency", "Available Sun–Thu"], ["📄", "Download Documents", "Visa, contract, ID"]].map(([icon, title, sub]) => (
+              <button key={title} style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "10px 0", background: "none", border: "none", cursor: "pointer", borderBottom: "1px solid #F3F4F6", textAlign: "left", fontFamily: "Tajawal, sans-serif" }}>
+                <span style={{ fontSize: 20 }}>{icon}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: COLORS.navy }}>{title}</div>
+                  <div style={{ fontSize: 12, color: COLORS.gray }}>{sub}</div>
+                </div>
+                <span style={{ marginLeft: "auto", color: COLORS.gold }}>→</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {activeTab === "maid" && (
+        <div className="card" style={{ padding: 28 }}>
+          <div style={{ display: "flex", gap: 20, alignItems: "center", marginBottom: 24, flexWrap: "wrap" }}>
+            <Avatar initials="MS" size={64} bg={COLORS.gold} color={COLORS.navy} />
+            <div>
+              <h2 style={{ fontFamily: "Playfair Display, serif", color: COLORS.navy }}>{member.maidName}</h2>
+              <div style={{ color: COLORS.gray, fontSize: 13, marginTop: 4 }}>Ref: {member.maidRef} • Philippines • Live-in</div>
+            </div>
+            <span className="tag badge-available" style={{ marginLeft: "auto" }}>Active</span>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 16 }}>
+            {[["Contract Start", "Feb 1, 2024"], ["Contract End", "Jan 31, 2026"], ["Visa Expiry", "Dec 30, 2025"], ["Passport Expiry", "Mar 15, 2027"], ["Monthly Salary", "KD 180"], ["Agency Contact", "+965 2200-0000"]].map(([k, v]) => (
+              <div key={k} style={{ background: COLORS.lightGray, borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: 11, color: COLORS.gray, marginBottom: 3 }}>{k}</div>
+                <div style={{ fontWeight: 600, fontSize: 14, color: COLORS.navy }}>{v}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {activeTab === "payments" && (
+        <div className="card">
+          <div style={{ padding: "20px 24px", borderBottom: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h3 style={{ fontFamily: "Playfair Display, serif", color: COLORS.navy }}>Payment History</h3>
+            <button className="btn-gold" style={{ padding: "8px 18px" }}>Pay Now</button>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+            <thead>
+              <tr style={{ background: COLORS.lightGray }}>
+                {["Month", "Amount", "Method", "Status", "Receipt"].map(h => <th key={h} style={{ padding: "10px 20px", textAlign: "left", fontWeight: 600, color: COLORS.gray, fontSize: 12 }}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {[...member.payments, { date: "Feb 2025", amount: 180, status: "paid" }, { date: "Jan 2025", amount: 180, status: "paid" }].map((p, i) => (
+                <tr key={i} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                  <td style={{ padding: "12px 20px", fontWeight: 500 }}>{p.date}</td>
+                  <td style={{ padding: "12px 20px" }}>KD {p.amount}</td>
+                  <td style={{ padding: "12px 20px", color: COLORS.gray }}>KNET</td>
+                  <td style={{ padding: "12px 20px" }}>
+                    <span className="tag" style={{ background: p.status === "paid" ? "#D1FAE5" : "#FEF3C7", color: p.status === "paid" ? "#065F46" : "#92400E" }}>{p.status}</span>
+                  </td>
+                  <td style={{ padding: "12px 20px" }}>
+                    {p.status === "paid" && <button style={{ background: "none", border: "none", color: COLORS.gold, cursor: "pointer", fontSize: 13, fontFamily: "Tajawal, sans-serif" }}>Download</button>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      {activeTab === "documents" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 16 }}>
+          {[["📄", "Employment Contract", "PDF • 2.4 MB"], ["🛂", "Maid Visa Copy", "PDF • 1.1 MB"], ["🪪", "Maid Passport Copy", "PDF • 0.9 MB"], ["📋", "Medical Certificate", "PDF • 0.7 MB"], ["✅", "Police Clearance", "PDF • 1.2 MB"], ["💼", "Work Permit", "PDF • 0.8 MB"]].map(([icon, name, size]) => (
+            <div key={name} className="card" style={{ padding: 20, textAlign: "center", cursor: "pointer" }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = COLORS.gold}
+              onMouseLeave={e => e.currentTarget.style.borderColor = "#E5E7EB"}>
+              <div style={{ fontSize: 32, marginBottom: 10 }}>{icon}</div>
+              <div style={{ fontWeight: 600, fontSize: 13, color: COLORS.navy, marginBottom: 4 }}>{name}</div>
+              <div style={{ fontSize: 12, color: COLORS.gray, marginBottom: 12 }}>{size}</div>
+              <button style={{ background: "none", border: `1px solid ${COLORS.gold}`, color: COLORS.gold, padding: "5px 14px", borderRadius: 5, cursor: "pointer", fontSize: 12, fontFamily: "Tajawal, sans-serif" }}>Download</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {activeTab === "settings" && (
+        <div className="card" style={{ padding: 28, maxWidth: 500 }}>
+          <h3 style={{ fontFamily: "Playfair Display, serif", marginBottom: 20, color: COLORS.navy }}>Account Settings</h3>
+          <div style={{ display: "grid", gap: 16 }}>
+            <div><label>Full Name</label><input defaultValue={member.name} /></div>
+            <div><label>Email Address</label><input defaultValue={member.email} /></div>
+            <div><label>Phone Number</label><input defaultValue={member.phone} /></div>
+            <div><label>Home Address</label><input defaultValue={member.address} /></div>
+            <div><label>Preferred Language</label><select defaultValue="english"><option value="english">English</option><option value="arabic">العربية</option></select></div>
+            <div style={{ borderTop: "1px solid #E5E7EB", paddingTop: 16 }}>
+              <div style={{ fontWeight: 600, color: COLORS.navy, marginBottom: 12 }}>Notifications</div>
+              {["Payment reminders", "Contract expiry alerts", "New promotions", "Agency news"].map(n => (
+                <label key={n} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, cursor: "pointer", fontSize: 14, color: COLORS.navy, fontWeight: 400 }}>
+                  <input type="checkbox" defaultChecked style={{ accentColor: COLORS.gold, width: 16, height: 16 }} />
+                  {n}
+                </label>
+              ))}
+            </div>
+            <button className="btn-gold" style={{ padding: "11px" }}>Save Changes</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── NOTIFICATIONS PAGE ──────────────────────────────────────────────────────────
+function NotificationsPage() {
+  const [notifs, setNotifs] = useState(notifications);
+
+  const markAll = () => setNotifs(notifs.map(n => ({ ...n, read: true })));
+
+  return (
+    <div style={{ maxWidth: 700, margin: "0 auto", padding: "32px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 26, color: COLORS.navy }}>Notifications</h1>
+        <button className="btn-outline" style={{ padding: "7px 16px", fontSize: 13 }} onClick={markAll}>Mark all read</button>
+      </div>
+      <div style={{ display: "grid", gap: 10 }}>
+        {notifs.map(n => (
+          <div key={n.id} className="card" style={{ padding: "16px 20px", display: "flex", gap: 14, alignItems: "flex-start", background: n.read ? "white" : "rgba(201,168,76,0.04)", borderLeft: n.read ? "none" : `4px solid ${COLORS.gold}` }}
+            onClick={() => setNotifs(notifs.map(x => x.id === n.id ? { ...x, read: true } : x))} style2={{ cursor: "pointer" }}>
+            <span style={{ fontSize: 24, flexShrink: 0 }}>{n.icon}</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: n.read ? 500 : 700, fontSize: 14, color: COLORS.navy, marginBottom: 4 }}>{n.title}</div>
+              <div style={{ fontSize: 13, color: COLORS.gray, lineHeight: 1.6 }}>{n.message}</div>
+              <div style={{ fontSize: 11, color: "#9CA3AF", marginTop: 6 }}>{n.time}</div>
+            </div>
+            {!n.read && <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS.gold, flexShrink: 0, marginTop: 6 }} />}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── ADMIN PAGE ─────────────────────────────────────────────────────────────────
+function AdminPage({ setPage }) {
+  const [adminTab, setAdminTab] = useState("dashboard");
+
+  const stats = [
+    { label: "Total Maids", value: 48, icon: "👤", color: COLORS.navy },
+    { label: "Active Placements", value: 31, icon: "✅", color: COLORS.green },
+    { label: "Pending Approvals", value: 7, icon: "⏳", color: "#D97706" },
+    { label: "Revenue (KD) - Apr", value: "5,580", icon: "💰", color: COLORS.gold },
+  ];
+
+  const adminTabs = ["dashboard", "maids", "members", "payments", "reports"];
+
+  return (
+    <div style={{ display: "flex", minHeight: "calc(100vh - 64px)" }}>
+      {/* Sidebar */}
+      <div style={{ width: 220, background: COLORS.navy, padding: "20px 0", flexShrink: 0 }}>
+        <div style={{ padding: "0 16px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ color: "#94A3B8", fontSize: 11, letterSpacing: 1.5, textTransform: "uppercase", marginBottom: 6 }}>Admin Panel</div>
+          <div style={{ color: COLORS.gold, fontWeight: 700, fontSize: 15 }}>Alireda Agency</div>
+        </div>
+        <div style={{ padding: "12px 8px" }}>
+          {[["dashboard", "📊", "Dashboard"], ["maids", "👤", "Maid Profiles"], ["members", "👨‍👩‍👧", "Members"], ["payments", "💳", "Payments"], ["reports", "📈", "Reports"]].map(([id, icon, label]) => (
+            <button key={id} onClick={() => setAdminTab(id)}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: adminTab === id ? `rgba(201,168,76,0.15)` : "none", border: "none", borderRadius: 6, cursor: "pointer", color: adminTab === id ? COLORS.gold : "#94A3B8", fontFamily: "Tajawal, sans-serif", fontSize: 14, marginBottom: 2, fontWeight: adminTab === id ? 700 : 400, textAlign: "left", transition: "all 0.2s" }}>
+              <span>{icon}</span>{label}
+            </button>
+          ))}
+        </div>
+        <div style={{ padding: "12px 8px", borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: "auto" }}>
+          <button onClick={() => setPage("home")} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", background: "none", border: "none", cursor: "pointer", color: "#94A3B8", fontFamily: "Tajawal, sans-serif", fontSize: 13 }}>
+            ← Exit Admin
+          </button>
+        </div>
+      </div>
+
+      {/* Main */}
+      <div style={{ flex: 1, padding: "28px", background: "#F9FAFB", overflowY: "auto" }}>
+        {adminTab === "dashboard" && (
+          <div>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: COLORS.navy, marginBottom: 20 }}>Dashboard Overview</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 14, marginBottom: 28 }}>
+              {stats.map(s => (
+                <div key={s.label} className="stat-card" style={{ borderTop: `3px solid ${s.color}` }}>
+                  <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                  <div style={{ fontSize: 26, fontWeight: 700, fontFamily: "Playfair Display, serif", color: s.color }}>{s.value}</div>
+                  <div style={{ fontSize: 12, color: COLORS.gray, marginTop: 2 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              <div className="card" style={{ padding: 20 }}>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 16, marginBottom: 14, color: COLORS.navy }}>Recent Notifications</h3>
+                {notifications.slice(0, 4).map(n => (
+                  <div key={n.id} style={{ display: "flex", gap: 10, padding: "8px 0", borderBottom: "1px solid #F3F4F6", alignItems: "center" }}>
+                    <span>{n.icon}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy }}>{n.title}</div>
+                      <div style={{ fontSize: 11, color: COLORS.gray }}>{n.time}</div>
+                    </div>
+                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: COLORS.gold }} />}
+                  </div>
+                ))}
+              </div>
+              <div className="card" style={{ padding: 20 }}>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 16, marginBottom: 14, color: COLORS.navy }}>Upcoming Actions</h3>
+                {[["📋", "ARA-001 Contract Renewal", "Due in 30 days", "#FEF3C7", "#92400E"], ["🛂", "Visa Expiry - ARA-005", "Due in 45 days", "#FEF3C7", "#92400E"], ["💰", "Overdue Payment - Sara M.", "KD 170 outstanding", "#FEE2E2", "#991B1B"], ["✈️", "New arrival - 3 maids", "Arriving May 15", "#D1FAE5", "#065F46"]].map(([icon, title, desc, bg, tc]) => (
+                  <div key={title} style={{ display: "flex", gap: 10, padding: "8px 0", borderBottom: "1px solid #F3F4F6" }}>
+                    <span>{icon}</span>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: COLORS.navy }}>{title}</div>
+                      <span style={{ fontSize: 11, background: bg, color: tc, padding: "2px 8px", borderRadius: 10 }}>{desc}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {adminTab === "maids" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: COLORS.navy }}>Maid Profiles</h2>
+              <button className="btn-gold" style={{ padding: "9px 20px" }}>+ Add New Maid</button>
+            </div>
+            <div className="card">
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: COLORS.lightGray }}>
+                    {["Ref", "Name", "Nationality", "Experience", "Skills", "Status", "Price", "Actions"].map(h => <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontWeight: 600, color: COLORS.gray, fontSize: 12 }}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {maids.map(m => (
+                    <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                      <td style={{ padding: "12px 16px", color: COLORS.gray, fontFamily: "monospace" }}>{m.ref}</td>
+                      <td style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 8 }}>
+                        <Avatar initials={m.photo} size={28} bg={COLORS.gold} color={COLORS.navy} />
+                        <span style={{ fontWeight: 600, color: COLORS.navy }}>{m.name}</span>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>{m.nationality}</td>
+                      <td style={{ padding: "12px 16px" }}>{m.experience}yr</td>
+                      <td style={{ padding: "12px 16px" }}>{m.skills.slice(0, 2).join(", ")}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span className="tag" style={{ background: m.status === "available" ? "#D1FAE5" : m.status === "pending" ? "#FEF3C7" : "#DBEAFE", color: m.status === "available" ? "#065F46" : m.status === "pending" ? "#92400E" : "#1E40AF", fontSize: 11 }}>{m.status}</span>
+                      </td>
+                      <td style={{ padding: "12px 16px", fontWeight: 600, color: COLORS.navy }}>KD {m.price}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <button style={{ background: "none", border: `1px solid ${COLORS.gold}`, color: COLORS.gold, padding: "4px 10px", borderRadius: 4, cursor: "pointer", fontSize: 12, fontFamily: "Tajawal, sans-serif" }}>Edit</button>
+                          <button style={{ background: "none", border: "1px solid #EF4444", color: "#EF4444", padding: "4px 10px", borderRadius: 4, cursor: "pointer", fontSize: 12, fontFamily: "Tajawal, sans-serif" }}>Del</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {adminTab === "members" && (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: COLORS.navy }}>Member Accounts</h2>
+              <button className="btn-gold" style={{ padding: "9px 20px" }}>+ Add Member</button>
+            </div>
+            <div className="card">
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: COLORS.lightGray }}>
+                    {["Name", "Civil ID", "Phone", "Plan", "Maid", "Joined", "Status", "Actions"].map(h => <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontWeight: 600, color: COLORS.gray, fontSize: 12 }}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map(m => (
+                    <tr key={m.id} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                      <td style={{ padding: "12px 16px", fontWeight: 600, color: COLORS.navy }}>{m.name}</td>
+                      <td style={{ padding: "12px 16px", color: COLORS.gray }}>{m.civil}</td>
+                      <td style={{ padding: "12px 16px" }}>{m.phone}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span className="tag" style={{ background: m.plan === "vip" ? "#EDE9FE" : "#F3F4F6", color: m.plan === "vip" ? "#5B21B6" : COLORS.gray }}>{m.plan.toUpperCase()}</span>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>{m.maidName}</td>
+                      <td style={{ padding: "12px 16px", color: COLORS.gray }}>{m.joined}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span style={{ color: COLORS.green, fontWeight: 600, fontSize: 12 }}>● Active</span>
+                      </td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <button style={{ background: "none", border: `1px solid ${COLORS.gold}`, color: COLORS.gold, padding: "4px 10px", borderRadius: 4, cursor: "pointer", fontSize: 12, fontFamily: "Tajawal, sans-serif" }}>View</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {adminTab === "payments" && (
+          <div>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: COLORS.navy, marginBottom: 20 }}>Payment Management</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12, marginBottom: 24 }}>
+              {[["Total Collected", "KD 5,580", COLORS.green], ["Outstanding", "KD 340", COLORS.red], ["This Month", "KD 1,800", COLORS.navy], ["Transactions", "31", COLORS.gold]].map(([l, v, c]) => (
+                <div key={l} className="stat-card">
+                  <div style={{ fontSize: 11, color: COLORS.gray }}>{l}</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: c, fontFamily: "Playfair Display, serif", marginTop: 4 }}>{v}</div>
+                </div>
+              ))}
+            </div>
+            <div className="card">
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: COLORS.lightGray }}>
+                    {["Ref", "Member", "Maid", "Amount", "Method", "Date", "Status"].map(h => <th key={h} style={{ padding: "10px 16px", textAlign: "left", fontWeight: 600, color: COLORS.gray, fontSize: 12 }}>{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {[["PAY-001", "Ahmed Al-Rashidi", "Maria Santos", "KD 180", "KNET", "Apr 1, 2025", "paid"], ["PAY-002", "Sara Al-Mutairi", "Amara Diallo", "KD 170", "Bank", "Apr 2, 2025", "paid"], ["PAY-003", "Sara Al-Mutairi", "Amara Diallo", "KD 170", "Cash", "Mar 1, 2025", "overdue"], ["PAY-004", "Ahmed Al-Rashidi", "Maria Santos", "KD 180", "KNET", "Mar 1, 2025", "paid"]].map(([ref, mem, maid, amt, meth, date, status]) => (
+                    <tr key={ref} style={{ borderBottom: "1px solid #F3F4F6" }}>
+                      <td style={{ padding: "12px 16px", color: COLORS.gray, fontFamily: "monospace" }}>{ref}</td>
+                      <td style={{ padding: "12px 16px", fontWeight: 500, color: COLORS.navy }}>{mem}</td>
+                      <td style={{ padding: "12px 16px" }}>{maid}</td>
+                      <td style={{ padding: "12px 16px", fontWeight: 700, color: COLORS.navy }}>{amt}</td>
+                      <td style={{ padding: "12px 16px" }}>{meth}</td>
+                      <td style={{ padding: "12px 16px", color: COLORS.gray }}>{date}</td>
+                      <td style={{ padding: "12px 16px" }}>
+                        <span className="tag" style={{ background: status === "paid" ? "#D1FAE5" : "#FEE2E2", color: status === "paid" ? "#065F46" : "#991B1B" }}>{status}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {adminTab === "reports" && (
+          <div>
+            <h2 style={{ fontFamily: "Playfair Display, serif", fontSize: 22, color: COLORS.navy, marginBottom: 20 }}>Reports & Analytics</h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+              {[["Nationality Breakdown", [["Philippines", 18], ["Indonesia", 12], ["India", 8], ["Ethiopia", 6], ["Kenya", 4]]], ["Skills in Demand", [["Childcare", 24], ["Cleaning", 31], ["Cooking", 28], ["Elderly Care", 15], ["Driving", 7]]]].map(([title, data]) => (
+                <div key={title} className="card" style={{ padding: 20 }}>
+                  <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 15, color: COLORS.navy, marginBottom: 16 }}>{title}</h3>
+                  {data.map(([label, val]) => {
+                    const max = Math.max(...data.map(d => d[1]));
+                    return (
+                      <div key={label} style={{ marginBottom: 10 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                          <span style={{ color: COLORS.navy }}>{label}</span>
+                          <span style={{ fontWeight: 600, color: COLORS.navy }}>{val}</span>
+                        </div>
+                        <div style={{ height: 6, background: "#E5E7EB", borderRadius: 3, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${(val / max) * 100}%`, background: `linear-gradient(90deg, ${COLORS.gold}, ${COLORS.goldLight})`, borderRadius: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+              <div className="card" style={{ padding: 20 }}>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 15, color: COLORS.navy, marginBottom: 16 }}>Monthly Revenue (KD)</h3>
+                {[["Jan", 4800], ["Feb", 5100], ["Mar", 5250], ["Apr", 5580]].map(([m, v]) => (
+                  <div key={m} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+                    <span style={{ width: 30, fontSize: 12, color: COLORS.gray }}>{m}</span>
+                    <div style={{ flex: 1, height: 20, background: "#E5E7EB", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${(v / 6000) * 100}%`, background: COLORS.navyLight, borderRadius: 4, display: "flex", alignItems: "center", paddingLeft: 8 }}>
+                        <span style={{ fontSize: 11, color: COLORS.gold, whiteSpace: "nowrap", fontWeight: 600 }}>KD {v.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="card" style={{ padding: 20 }}>
+                <h3 style={{ fontFamily: "Playfair Display, serif", fontSize: 15, color: COLORS.navy, marginBottom: 16 }}>Export Reports</h3>
+                {[["📄", "Monthly Summary - April 2025"], ["📊", "Placement Statistics 2025"], ["💳", "Payment Ledger - April 2025"], ["📋", "Contract Expiry Report"]].map(([icon, label]) => (
+                  <button key={label} style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 0", background: "none", border: "none", cursor: "pointer", borderBottom: "1px solid #F3F4F6", fontFamily: "Tajawal, sans-serif", textAlign: "left" }}>
+                    <span>{icon}</span>
+                    <span style={{ fontSize: 13, color: COLORS.navy, flex: 1 }}>{label}</span>
+                    <span style={{ color: COLORS.gold, fontSize: 13 }}>↓</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── LOGIN PAGE ─────────────────────────────────────────────────────────────────
+function LoginPage({ setPage, setUser }) {
+  const [mode, setMode] = useState("login");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "", name: "" });
+
+  const handleLogin = () => {
+    if (isAdmin) {
+      setPage("admin");
+    } else {
+      setUser({ name: "Ahmed Al-Rashidi", initials: "AR" });
+      setPage("member");
+    }
+  };
+
+  return (
+    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <Logo />
+          <p style={{ color: COLORS.gray, fontSize: 14, marginTop: 8 }}>Member & Staff Portal</p>
+        </div>
+        <div className="card" style={{ padding: "32px 28px" }}>
+          <div style={{ display: "flex", gap: 0, marginBottom: 24, borderBottom: "2px solid #E5E7EB" }}>
+            {["login", "register"].map(m => (
+              <button key={m} onClick={() => setMode(m)} style={{ flex: 1, background: "none", border: "none", borderBottom: `2px solid ${mode === m ? COLORS.gold : "transparent"}`, marginBottom: -2, padding: "8px 0", cursor: "pointer", color: mode === m ? COLORS.gold : COLORS.gray, fontFamily: "Tajawal, sans-serif", fontWeight: mode === m ? 700 : 400, textTransform: "capitalize" }}>
+                {m === "login" ? "Sign In" : "Register"}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ display: "grid", gap: 14 }}>
+            {mode === "register" && <div><label>Full Name</label><input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="As per Civil ID" /></div>}
+            <div><label>Email Address</label><input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="you@email.com" /></div>
+            <div><label>Password</label><input type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="••••••••" /></div>
+            {mode === "register" && <div><label>Civil ID Number</label><input placeholder="289xxxxxxx" /></div>}
+            {mode === "register" && <div><label>Mobile Number</label><input placeholder="+965 XXXX-XXXX" /></div>}
+
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 400, color: COLORS.gray, cursor: "pointer" }}>
+              <input type="checkbox" checked={isAdmin} onChange={e => setIsAdmin(e.target.checked)} style={{ accentColor: COLORS.gold }} />
+              Sign in as Admin
+            </label>
+
+            <button className="btn-gold" style={{ padding: "12px", fontSize: 15, marginTop: 4 }} onClick={handleLogin}>
+              {mode === "login" ? "Sign In →" : "Create Account →"}
+            </button>
+          </div>
+          {mode === "login" && (
+            <div style={{ textAlign: "center", marginTop: 14 }}>
+              <button style={{ background: "none", border: "none", color: COLORS.gold, cursor: "pointer", fontSize: 13, fontFamily: "Tajawal, sans-serif" }}>Forgot Password?</button>
+            </div>
+          )}
+        </div>
+        <p style={{ textAlign: "center", color: COLORS.gray, fontSize: 13, marginTop: 16 }}>
+          By signing in you agree to our <span style={{ color: COLORS.gold, cursor: "pointer" }}>Terms</span> & <span style={{ color: COLORS.gold, cursor: "pointer" }}>Privacy Policy</span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── ABOUT / CONTACT PAGES ──────────────────────────────────────────────────────
+function AboutPage() {
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 20px" }}>
+      <div style={{ background: `linear-gradient(135deg, ${COLORS.navy}, ${COLORS.navyLight})`, borderRadius: 12, padding: "40px", marginBottom: 36, textAlign: "center" }}>
+        <Logo />
+        <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 28, color: "white", marginTop: 20, marginBottom: 12 }}>About Alireda Agency</h1>
+        <p style={{ color: "#94A3B8", lineHeight: 1.8, maxWidth: 600, margin: "0 auto" }}>Since 2008, Alireda House Maid Agency has been Kuwait's most trusted partner for domestic staffing. We pride ourselves on ethical recruitment, thorough screening, and lifetime support for both families and workers.</p>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 20 }}>
+        {[["🎯", "Our Mission", "To connect Kuwaiti families with trustworthy, skilled domestic helpers while protecting the rights and dignity of all workers."], ["👁️", "Our Vision", "To be the most ethical and professional domestic staffing agency in the Gulf region by 2030."], ["⚖️", "Our Values", "Transparency, integrity, respect for workers' rights, and unwavering commitment to client satisfaction."], ["🛡️", "Guarantees", "12-month replacement guarantee, full documentation support, 24/7 emergency assistance."]].map(([icon, title, text]) => (
+          <div key={title} className="card" style={{ padding: 24 }}>
+            <div style={{ fontSize: 28, marginBottom: 12 }}>{icon}</div>
+            <h3 style={{ fontFamily: "Playfair Display, serif", color: COLORS.navy, marginBottom: 10 }}>{title}</h3>
+            <p style={{ color: COLORS.gray, fontSize: 14, lineHeight: 1.7 }}>{text}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ContactPage() {
+  return (
+    <div style={{ maxWidth: 900, margin: "0 auto", padding: "40px 20px" }}>
+      <h1 style={{ fontFamily: "Playfair Display, serif", fontSize: 28, color: COLORS.navy, marginBottom: 6 }}>Contact Us</h1>
+      <p style={{ color: COLORS.gray, marginBottom: 32 }}>We're here to help. Reach out any time.</p>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+        <div className="card" style={{ padding: 28 }}>
+          <h3 style={{ fontFamily: "Playfair Display, serif", color: COLORS.navy, marginBottom: 20 }}>Send a Message</h3>
+          <div style={{ display: "grid", gap: 14 }}>
+            <div><label>Your Name</label><input placeholder="Full name" /></div>
+            <div><label>Phone Number</label><input placeholder="+965 XXXX-XXXX" /></div>
+            <div><label>Email</label><input placeholder="your@email.com" /></div>
+            <div><label>Subject</label><select><option>Booking Inquiry</option><option>Contract Issue</option><option>Payment</option><option>Other</option></select></div>
+            <div><label>Message</label><textarea rows={4} placeholder="How can we help you?" /></div>
+            <button className="btn-gold" style={{ padding: "12px" }}>Send Message</button>
+          </div>
+        </div>
+        <div>
+          <div className="card" style={{ padding: 24, marginBottom: 16 }}>
+            <h3 style={{ fontFamily: "Playfair Display, serif", color: COLORS.navy, marginBottom: 16 }}>Our Office</h3>
+            {[["📍", "Address", "Salmiya, Block 4, Street 12\nBuilding 8, Kuwait City"], ["📞", "Phone", "+965 2200-0000\n+965 9900-0000 (WhatsApp)"], ["✉️", "Email", "info@alireda.com.kw\nbooking@alireda.com.kw"], ["🕐", "Hours", "Sunday – Thursday\n9:00 AM – 6:00 PM"]].map(([icon, label, val]) => (
+              <div key={label} style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                <span style={{ fontSize: 18 }}>{icon}</span>
+                <div>
+                  <div style={{ fontWeight: 600, fontSize: 13, color: COLORS.navy, marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontSize: 13, color: COLORS.gray, whiteSpace: "pre-line", lineHeight: 1.6 }}>{val}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{ background: COLORS.gold, borderRadius: 10, padding: 20, textAlign: "center" }}>
+            <div style={{ fontSize: 24, marginBottom: 8 }}>💬</div>
+            <div style={{ fontWeight: 700, color: COLORS.navy, marginBottom: 4 }}>WhatsApp Us</div>
+            <div style={{ fontSize: 13, color: COLORS.navyMid, marginBottom: 12 }}>Get a reply within minutes</div>
+            <button className="btn-navy" style={{ padding: "9px 24px" }}>+965 9900-0000</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── APP ROOT ───────────────────────────────────────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState("home");
+  const [user, setUser] = useState(null);
+  const [selectedMaid, setSelectedMaid] = useState(null);
+  const unread = notifications.filter(n => !n.read).length;
+
+  const handleSetPage = (p) => {
+    window.scrollTo(0, 0);
+    setPage(p);
+  };
+
+  return (
+    <div>
+      <GFonts />
+      {page !== "admin" && <NavBar page={page} setPage={handleSetPage} unread={unread} user={user} />}
+      {page === "home" && <HomePage setPage={handleSetPage} />}
+      {page === "maids" && <MaidsPage setPage={handleSetPage} setSelectedMaid={setSelectedMaid} />}
+      {page === "booking" && <BookingPage selectedMaid={selectedMaid} setPage={handleSetPage} />}
+      {page === "about" && <AboutPage />}
+      {page === "contact" && <ContactPage />}
+      {page === "login" && <LoginPage setPage={handleSetPage} setUser={setUser} />}
+      {page === "member" && <MemberPage setPage={handleSetPage} />}
+      {page === "notifications" && <NotificationsPage />}
+      {page === "admin" && <AdminPage setPage={handleSetPage} />}
+    </div>
+  );
+}
